@@ -34,32 +34,15 @@ jobs:
           distribution: temurin
           cache: gradle
 
+      # استفاده از اکشن رسمی و بسیار پایدار برای نصب SDK
       - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 11076708
+
+      - name: Install required SDK packages
         run: |
-          # 1. تنظیم مسیرها و نصب ابزارهای خط فرمان
-          export ANDROID_HOME=$HOME/Android/Sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-          
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
-          
-          if [ ! -d "latest" ]; then
-            echo "Downloading Android Command Line Tools..."
-            wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-            unzip -q commandlinetools-linux-11076708_latest.zip
-            mv cmdline-tools latest
-            rm commandlinetools-linux-11076708_latest.zip
-          fi
-          
-          # 2. پذیرش لایسنس‌ها
-          yes | sdkmanager --licenses || true
-          
-          # 3. نصب پلتفرم و ابزارهای بیلد مورد نیاز
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
-          
-          # 4. ذخیره متغیرها برای مراحل بعدی (حیاتی برای مرحله Sign)
-          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "PATH=$PATH" >> $GITHUB_ENV
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
@@ -143,7 +126,6 @@ jobs:
       - name: Build APK (arm64 + armeabi-v7a)
         run: |
           chmod +x ./gradlew
-          # اجرای بیلد با لاگ کامل
           ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Sign APK
@@ -165,7 +147,6 @@ jobs:
             KEY_PASS="android"
           fi
           
-          # پیدا کردن آخرین نسخه Build Tools
           BUILD_TOOLS=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
           echo "Using Build Tools at: $BUILD_TOOLS"
           
@@ -177,7 +158,6 @@ jobs:
           find app/build -name '*.apk' -type f
           
           FOUND=0
-          # پیدا کردن فایل‌های APK خروجی بر اساس معماری
           while IFS= read -r APK; do
             [ -z "$APK" ] && continue
             echo "Processing: $APK"
@@ -186,7 +166,6 @@ jobs:
             
             OUT="/tmp/signed/${SAFE}_${VER}_${ABI}.apk"
             
-            # استفاده از zipalign و apksigner با مسیر کامل
             $BUILD_TOOLS/zipalign -v -p 4 "$APK" /tmp/aligned_${ABI}.apk
             $BUILD_TOOLS/apksigner sign --ks /tmp/release.keystore --ks-pass "pass:$KS_PASS" --ks-key-alias "$KEY_ALIAS" --key-pass "pass:$KEY_PASS" --out "$OUT" /tmp/aligned_${ABI}.apk
             
