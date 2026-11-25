@@ -3,8 +3,6 @@ on:
   push:
   workflow_dispatch:
     inputs:
-  
-    
       app_url:
         description: Target URL
         required: true
@@ -37,6 +35,9 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: true
 
       - name: Cache Gradle dependencies
         uses: actions/cache@v4
