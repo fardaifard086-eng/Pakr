@@ -34,14 +34,13 @@ jobs:
           distribution: temurin
           cache: gradle
 
-      # اکشن نسخه ۴ که پارامتر cmdline-tools-version رو پشتیبانی می‌کنه
+      # استفاده از SDK پیش‌نصب‌شده در سرور گیت‌هاب (بدون نیاز به دانلود)
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          cmdline-tools-version: 11076708
-
-      - name: Install required SDK packages
         run: |
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
+          
+          # نصب پکیج‌های مورد نیاز
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Cache Gradle dependencies
