@@ -34,9 +34,9 @@ jobs:
           distribution: temurin
           cache: gradle
 
-      # استفاده از اکشن رسمی و بسیار پایدار برای نصب SDK
+      # اکشن نسخه ۴ که پارامتر cmdline-tools-version رو پشتیبانی می‌کنه
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
         with:
           cmdline-tools-version: 11076708
 
